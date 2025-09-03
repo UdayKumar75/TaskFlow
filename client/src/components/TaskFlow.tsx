@@ -8,7 +8,7 @@ import { useTasks } from "@/hooks/useTasks";
 
 export const TaskFlow: React.FC = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [activeView, setActiveView] = useState("dashboard");
+  const [activeView, setActiveView] = useState("all");
   const [taskFilter, setTaskFilter] = useState<"all" | "active" | "completed" | "high">("all");
   const [isModalOpen, setIsModalOpen] = useState(false);
 

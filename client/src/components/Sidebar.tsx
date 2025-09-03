@@ -35,12 +35,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   };
 
   const navItems = [
-    { key: "dashboard", icon: "fas fa-home", label: "Dashboard", count: null },
-    { key: "all", icon: "fas fa-list", label: "All Tasks", count: stats.total },
+    { key: "all", icon: "fas fa-list", label: "Tasks", count: stats.total },
     { key: "today", icon: "fas fa-calendar-day", label: "Today", count: stats.today },
     { key: "week", icon: "fas fa-calendar-week", label: "This Week", count: stats.thisWeek },
     { key: "completed", icon: "fas fa-check-circle", label: "Completed", count: null },
     { key: "high", icon: "fas fa-exclamation-triangle", label: "High Priority", count: stats.highPriority },
+    { key: "dashboard", icon: "fas fa-home", label: "Dashboard", count: null },
   ];
 
   return (
