@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TaskFlow - Creative Todo List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        theme: {
+            extend: {
+                borderRadius: {
+                    lg: "var(--radius)",
+                    md: "calc(var(--radius) - 2px)",
+                    sm: "calc(var(--radius) - 4px)",
+                },
+                colors: {
+                    background: "var(--background)",
+                    foreground: "var(--foreground)",
+                    card: {
+                        DEFAULT: "var(--card)",
+                        foreground: "var(--card-foreground)",
+                    },
+                    popover: {
+                        DEFAULT: "var(--popover)",
+                        foreground: "var(--popover-foreground)",
+                    },
+                    primary: {
+                        DEFAULT: "var(--primary)",
+                        foreground: "var(--primary-foreground)",
+                    },
+                    secondary: {
+                        DEFAULT: "var(--secondary)",
+                        foreground: "var(--secondary-foreground)",
+                    },
+                    muted: {
+                        DEFAULT: "var(--muted)",
+                        foreground: "var(--muted-foreground)",
+                    },
+                    accent: {
+                        DEFAULT: "var(--accent)",
+                        foreground: "var(--accent-foreground)",
+                    },
+                    destructive: {
+                        DEFAULT: "var(--destructive)",
+                        foreground: "var(--destructive-foreground)",
+                    },
+                    border: "var(--border)",
+                    input: "var(--input)",
+                    ring: "var(--ring)",
+                }
+            },
+            fontFamily: {
+                sans: ["Inter", "system-ui", "sans-serif"],
+            }
+        },
+    };
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --radius: 0.75rem;
+            
+            /* Light mode colors */
+            --background: hsl(220 15% 97%);
+            --foreground: hsl(220 9% 15%);
+            --card: hsl(0 0% 100%);
+            --card-foreground: hsl(220 9% 15%);
+            --popover: hsl(0 0% 100%);
+            --popover-foreground: hsl(220 9% 15%);
+            --primary: hsl(262 83% 58%);
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(220 14% 96%);
+            --secondary-foreground: hsl(220 9% 46%);
+            --muted: hsl(220 14% 96%);
+            --muted-foreground: hsl(220 9% 46%);
+            --accent: hsl(220 14% 96%);
+            --accent-foreground: hsl(220 9% 15%);
+            --destructive: hsl(0 84% 60%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --border: hsl(220 13% 91%);
+            --input: hsl(220 13% 91%);
+            --ring: hsl(262 83% 58%);
+        }
+
+        .dark {
+            --background: hsl(224 71% 4%);
+            --foreground: hsl(213 31% 91%);
+            --card: hsl(224 71% 6%);
+            --card-foreground: hsl(213 31% 91%);
+            --popover: hsl(224 71% 6%);
+            --popover-foreground: hsl(213 31% 91%);
+            --primary: hsl(263 70% 50%);
+            --primary-foreground: hsl(0 0% 100%);
+            --secondary: hsl(215 27% 17%);
+            --secondary-foreground: hsl(213 31% 73%);
+            --muted: hsl(215 27% 17%);
+            --muted-foreground: hsl(213 31% 73%);
+            --accent: hsl(215 27% 17%);
+            --accent-foreground: hsl(213 31% 91%);
+            --destructive: hsl(0 63% 31%);
+            --destructive-foreground: hsl(0 0% 100%);
+            --border: hsl(215 27% 17%);
+            --input: hsl(215 27% 17%);
+            --ring: hsl(263 70% 50%);
+        }
+
+        .task-item {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .task-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        .dark .task-item:hover {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, hsl(262 83% 58%) 0%, hsl(295 100% 70%) 100%);
+        }
+
+        .dark .gradient-bg {
+            background: linear-gradient(135deg, hsl(263 70% 30%) 0%, hsl(295 80% 40%) 100%);
+        }
+
+        .glassmorphism {
+            backdrop-filter: blur(16px) saturate(180%);
+            background-color: rgba(255, 255, 255, 0.75);
+            border: 1px solid rgba(209, 213, 219, 0.3);
+        }
+
+        .dark .glassmorphism {
+            background-color: rgba(15, 23, 42, 0.8);
+            border: 1px solid rgba(51, 65, 85, 0.3);
+        }
+
+        .priority-high { --priority-color: hsl(0 84% 60%); }
+        .priority-medium { --priority-color: hsl(38 92% 50%); }
+        .priority-low { --priority-color: hsl(142 76% 36%); }
+
+        .animate-slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .chart-container {
+            min-height: 300px;
+        }
+    </style>
+</head>
+<body class="bg-background text-foreground transition-colors duration-300">
+    <!-- @COMPONENT: Header [theme toggle, branding] -->
+    <header class="sticky top-0 z-50 glassmorphism border-b border-border">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <div class="w-10 h-10 rounded-xl gradient-bg flex items-center justify-center">
+                        <i class="fas fa-tasks text-white text-lg"></i>
+                    </div>
+                    <h1 class="text-2xl font-bold bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+                        TaskFlow
+                    </h1>
+                </div>
+                
+                <div class="flex items-center space-x-4">
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-secondary hover:bg-accent transition-colors duration-200">
+                        <i class="fas fa-moon text-muted-foreground"></i>
+                    </button>
+                    <button class="p-2 rounded-lg bg-secondary hover:bg-accent transition-colors duration-200">
+                        <i class="fas fa-user text-muted-foreground"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+    <!-- @END_COMPONENT: Header -->
+
+    <!-- @COMPONENT: TaskSection [fixed at top, task management] -->
+    <section class="container mx-auto px-4 py-6">
+        <!-- Add Task Form -->
+        <div class="bg-card rounded-xl border border-border p-6 mb-6 shadow-sm">
+            <h2 class="text-xl font-semibold mb-4 flex items-center">
+                <i class="fas fa-plus-circle text-primary mr-3"></i>
+                Add New Task
+            </h2>
+            
+            <form class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input 
+                        type="text" 
+                        placeholder="Task title..." 
+                        class="w-full px-4 py-3 rounded-lg bg-input border border-border focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                        data-mock="true"
+                    >
+                    <select class="w-full px-4 py-3 rounded-lg bg-input border border-border focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200">
+                        <option>Priority Level</option>
+                        <option value="high">High Priority</option>
+                        <option value="medium">Medium Priority</option>
+                        <option value="low">Low Priority</option>
+                    </select>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input 
+                        type="date" 
+                        class="w-full px-4 py-3 rounded-lg bg-input border border-border focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    >
+                    <input 
+                        type="time" 
+                        class="w-full px-4 py-3 rounded-lg bg-input border border-border focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    >
+                </div>
+                
+                <textarea 
+                    placeholder="Task description (optional)..." 
+                    rows="3" 
+                    class="w-full px-4 py-3 rounded-lg bg-input border border-border focus:ring-2 focus:ring-primary focus:border-transparent transition-all duration-200"
+                    data-mock="true"
+                ></textarea>
+                
+                <button 
+                    type="submit" 
+                    class="w-full md:w-auto px-6 py-3 gradient-bg text-white rounded-lg font-medium hover:opacity-90 transition-all duration-200 transform hover:scale-105"
+                    data-event="click:addTask"
+                >
+                    <i class="fas fa-plus mr-2"></i>
+                    Add Task
+                </button>
+            </form>
+        </div>
+
+        <!-- Task Filters -->
+        <div class="bg-card rounded-xl border border-border p-4 mb-6 shadow-sm">
+            <div class="flex flex-wrap items-center justify-between gap-4">
+                <div class="flex flex-wrap gap-2">
+                    <button class="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium">All Tasks</button>
+                    <button class="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-accent transition-colors">Active</button>
+                    <button class="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-accent transition-colors">Completed</button>
+                    <button class="px-4 py-2 rounded-lg bg-secondary text-secondary-foreground hover:bg-accent transition-colors">High Priority</button>
+                </div>
+                
+                <div class="flex items-center space-x-2">
+                    <select class="px-3 py-2 rounded-lg bg-input border border-border text-sm">
+                        <option>Sort by Date</option>
+                        <option>Sort by Priority</option>
+                        <option>Sort by Status</option>
+                    </select>
+                    <button class="p-2 rounded-lg bg-secondary hover:bg-accent transition-colors">
+                        <i class="fas fa-search text-muted-foreground"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Task List -->
+        <!-- @MAP: tasks.map(task => ( -->
+        <div class="space-y-4 mb-8">
+            <!-- Task Item 1 -->
+            <div class="task-item bg-card rounded-xl border border-border p-6 shadow-sm">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start space-x-4 flex-1">
+                        <input 
+                            type="checkbox" 
+                            class="mt-1 w-5 h-5 rounded border-2 border-primary text-primary focus:ring-primary"
+                            data-event="change:toggleTask"
+                        >
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-foreground mb-2" data-bind="task.title">Complete project proposal</h3>
+                            <p class="text-muted-foreground text-sm mb-3" data-bind="task.description">Finalize the Q4 project proposal with budget estimates and timeline</p>
+                            <div class="flex flex-wrap items-center gap-3 text-sm">
+                                <span class="flex items-center text-muted-foreground">
+                                    <i class="fas fa-calendar-alt mr-2"></i>
+                                    <span data-bind="task.dueDate">Dec 15, 2024</span>
+                                </span>
+                                <span class="flex items-center text-muted-foreground">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    <span data-bind="task.dueTime">2:00 PM</span>
+                                </span>
+                                <span class="priority-high px-3 py-1 rounded-full text-xs font-medium" style="background-color: var(--priority-color); color: white;">
+                                    High Priority
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 ml-4">
+                        <button class="p-2 rounded-lg bg-secondary hover:bg-accent transition-colors" data-event="click:editTask">
+                            <i class="fas fa-edit text-muted-foreground"></i>
+                        </button>
+                        <button class="p-2 rounded-lg bg-secondary hover:bg-destructive hover:text-destructive-foreground transition-colors" data-event="click:deleteTask">
+                            <i class="fas fa-trash text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Item 2 -->
+            <div class="task-item bg-card rounded-xl border border-border p-6 shadow-sm">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start space-x-4 flex-1">
+                        <input 
+                            type="checkbox" 
+                            checked
+                            class="mt-1 w-5 h-5 rounded border-2 border-primary text-primary focus:ring-primary"
+                            data-event="change:toggleTask"
+                        >
+                        <div class="flex-1 opacity-60">
+                            <h3 class="font-semibold text-foreground mb-2 line-through" data-bind="task.title">Review team feedback</h3>
+                            <p class="text-muted-foreground text-sm mb-3" data-bind="task.description">Go through all team feedback from last week's sprint review</p>
+                            <div class="flex flex-wrap items-center gap-3 text-sm">
+                                <span class="flex items-center text-muted-foreground">
+                                    <i class="fas fa-calendar-alt mr-2"></i>
+                                    <span data-bind="task.dueDate">Dec 12, 2024</span>
+                                </span>
+                                <span class="flex items-center text-muted-foreground">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    <span data-bind="task.dueTime">10:00 AM</span>
+                                </span>
+                                <span class="priority-medium px-3 py-1 rounded-full text-xs font-medium" style="background-color: var(--priority-color); color: white;">
+                                    Medium Priority
+                                </span>
+                                <span class="flex items-center text-green-600">
+                                    <i class="fas fa-check-circle mr-1"></i>
+                                    Completed
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 ml-4">
+                        <button class="p-2 rounded-lg bg-secondary hover:bg-accent transition-colors" data-event="click:editTask">
+                            <i class="fas fa-edit text-muted-foreground"></i>
+                        </button>
+                        <button class="p-2 rounded-lg bg-secondary hover:bg-destructive hover:text-destructive-foreground transition-colors" data-event="click:deleteTask">
+                            <i class="fas fa-trash text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Task Item 3 -->
+            <div class="task-item bg-card rounded-xl border border-border p-6 shadow-sm">
+                <div class="flex items-start justify-between">
+                    <div class="flex items-start space-x-4 flex-1">
+                        <input 
+                            type="checkbox" 
+                            class="mt-1 w-5 h-5 rounded border-2 border-primary text-primary focus:ring-primary"
+                            data-event="change:toggleTask"
+                        >
+                        <div class="flex-1">
+                            <h3 class="font-semibold text-foreground mb-2" data-bind="task.title">Update documentation</h3>
+                            <p class="text-muted-foreground text-sm mb-3" data-bind="task.description">Update project documentation with latest API changes</p>
+                            <div class="flex flex-wrap items-center gap-3 text-sm">
+                                <span class="flex items-center text-muted-foreground">
+                                    <i class="fas fa-calendar-alt mr-2"></i>
+                                    <span data-bind="task.dueDate">Dec 18, 2024</span>
+                                </span>
+                                <span class="flex items-center text-muted-foreground">
+                                    <i class="fas fa-clock mr-2"></i>
+                                    <span data-bind="task.dueTime">5:00 PM</span>
+                                </span>
+                                <span class="priority-low px-3 py-1 rounded-full text-xs font-medium" style="background-color: var(--priority-color); color: white;">
+                                    Low Priority
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="flex items-center space-x-2 ml-4">
+                        <button class="p-2 rounded-lg bg-secondary hover:bg-accent transition-colors" data-event="click:editTask">
+                            <i class="fas fa-edit text-muted-foreground"></i>
+                        </button>
+                        <button class="p-2 rounded-lg bg-secondary hover:bg-destructive hover:text-destructive-foreground transition-colors" data-event="click:deleteTask">
+                            <i class="fas fa-trash text-muted-foreground"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- @END_MAP )) -->
+    </section>
+    <!-- @END_COMPONENT: TaskSection -->
+
+    <!-- @COMPONENT: Dashboard [analytics and visualizations] -->
+    <section class="container mx-auto px-4 py-6">
+        <div class="mb-8">
+            <h2 class="text-2xl font-bold mb-2">Dashboard & Analytics</h2>
+            <p class="text-muted-foreground">Track your productivity and task completion patterns</p>
+        </div>
+
+        <!-- Quick Stats -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-card rounded-xl border border-border p-6 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-muted-foreground text-sm font-medium">Total Tasks</p>
+                        <p class="text-2xl font-bold text-foreground" data-bind="stats.totalTasks">24</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center">
+                        <i class="fas fa-tasks text-primary text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-600 flex items-center">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        +12%
+                    </span>
+                    <span class="text-muted-foreground ml-2">from last week</span>
+                </div>
+            </div>
+
+            <div class="bg-card rounded-xl border border-border p-6 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-muted-foreground text-sm font-medium">Completed</p>
+                        <p class="text-2xl font-bold text-foreground" data-bind="stats.completedTasks">18</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-green-500/10 flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-600 flex items-center">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        +8%
+                    </span>
+                    <span class="text-muted-foreground ml-2">completion rate</span>
+                </div>
+            </div>
+
+            <div class="bg-card rounded-xl border border-border p-6 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-muted-foreground text-sm font-medium">In Progress</p>
+                        <p class="text-2xl font-bold text-foreground" data-bind="stats.activeTasks">6</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-orange-500/10 flex items-center justify-center">
+                        <i class="fas fa-clock text-orange-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-muted-foreground">Active tasks</span>
+                </div>
+            </div>
+
+            <div class="bg-card rounded-xl border border-border p-6 shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-muted-foreground text-sm font-medium">Productivity</p>
+                        <p class="text-2xl font-bold text-foreground" data-bind="stats.productivityScore">87%</p>
+                    </div>
+                    <div class="w-12 h-12 rounded-xl bg-purple-500/10 flex items-center justify-center">
+                        <i class="fas fa-chart-line text-purple-500 text-xl"></i>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center text-sm">
+                    <span class="text-green-600 flex items-center">
+                        <i class="fas fa-arrow-up mr-1"></i>
+                        +5%
+                    </span>
+                    <span class="text-muted-foreground ml-2">this month</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts and Visualizations -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+            <!-- Task Completion Chart -->
+            <div class="bg-card rounded-xl border border-border p-6 shadow-sm">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-chart-bar text-primary mr-3"></i>
+                    Weekly Progress
+                </h3>
+                <div class="chart-container">
+                    <!-- @FUNCTIONALITY: Implement chart using Chart.js or similar library -->
+                    <div class="space-y-3">
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-muted-foreground">Monday</span>
+                            <div class="flex-1 mx-4 bg-muted rounded-full h-3">
+                                <div class="bg-primary h-3 rounded-full" style="width: 85%"></div>
+                            </div>
+                            <span class="text-sm font-medium">85%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-muted-foreground">Tuesday</span>
+                            <div class="flex-1 mx-4 bg-muted rounded-full h-3">
+                                <div class="bg-primary h-3 rounded-full" style="width: 92%"></div>
+                            </div>
+                            <span class="text-sm font-medium">92%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-muted-foreground">Wednesday</span>
+                            <div class="flex-1 mx-4 bg-muted rounded-full h-3">
+                                <div class="bg-primary h-3 rounded-full" style="width: 78%"></div>
+                            </div>
+                            <span class="text-sm font-medium">78%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-muted-foreground">Thursday</span>
+                            <div class="flex-1 mx-4 bg-muted rounded-full h-3">
+                                <div class="bg-primary h-3 rounded-full" style="width: 95%"></div>
+                            </div>
+                            <span class="text-sm font-medium">95%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-muted-foreground">Friday</span>
+                            <div class="flex-1 mx-4 bg-muted rounded-full h-3">
+                                <div class="bg-primary h-3 rounded-full" style="width: 88%"></div>
+                            </div>
+                            <span class="text-sm font-medium">88%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-muted-foreground">Saturday</span>
+                            <div class="flex-1 mx-4 bg-muted rounded-full h-3">
+                                <div class="bg-primary h-3 rounded-full" style="width: 65%"></div>
+                            </div>
+                            <span class="text-sm font-medium">65%</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <span class="text-sm text-muted-foreground">Sunday</span>
+                            <div class="flex-1 mx-4 bg-muted rounded-full h-3">
+                                <div class="bg-primary h-3 rounded-full" style="width: 45%"></div>
+                            </div>
+                            <span class="text-sm font-medium">45%</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority Distribution -->
+            <div class="bg-card rounded-xl border border-border p-6 shadow-sm">
+                <h3 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-chart-pie text-primary mr-3"></i>
+                    Priority Distribution
+                </h3>
+                <div class="chart-container">
+                    <!-- @FUNCTIONALITY: Implement pie chart for priority distribution -->
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-red-500 mr-3"></div>
+                                <span class="text-sm">High Priority</span>
+                            </div>
+                            <span class="font-medium">8 tasks</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-orange-500 mr-3"></div>
+                                <span class="text-sm">Medium Priority</span>
+                            </div>
+                            <span class="font-medium">12 tasks</span>
+                        </div>
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center">
+                                <div class="w-4 h-4 rounded-full bg-green-500 mr-3"></div>
+                                <span class="text-sm">Low Priority</span>
+                            </div>
+                            <span class="font-medium">4 tasks</span>
+                        </div>
+                        
+                        <!-- Visual representation -->
+                        <div class="mt-6">
+                            <div class="flex h-4 rounded-full overflow-hidden">
+                                <div class="bg-red-500 flex-shrink-0" style="width: 33%"></div>
+                                <div class="bg-orange-500 flex-shrink-0" style="width: 50%"></div>
+                                <div class="bg-green-500 flex-shrink-0" style="width: 17%"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Calendar View -->
+        <div class="bg-card rounded-xl border border-border p-6 shadow-sm">
+            <h3 class="text-lg font-semibold mb-4 flex items-center">
+                <i class="fas fa-calendar text-primary mr-3"></i>
+                Calendar View
+            </h3>
+            
+            <!-- @FUNCTIONALITY: Implement calendar component with task visualization -->
+            <div class="grid grid-cols-7 gap-1 mb-4">
+                <div class="p-2 text-center text-sm font-medium text-muted-foreground">Sun</div>
+                <div class="p-2 text-center text-sm font-medium text-muted-foreground">Mon</div>
+                <div class="p-2 text-center text-sm font-medium text-muted-foreground">Tue</div>
+                <div class="p-2 text-center text-sm font-medium text-muted-foreground">Wed</div>
+                <div class="p-2 text-center text-sm font-medium text-muted-foreground">Thu</div>
+                <div class="p-2 text-center text-sm font-medium text-muted-foreground">Fri</div>
+                <div class="p-2 text-center text-sm font-medium text-muted-foreground">Sat</div>
+            </div>
+            
+            <div class="grid grid-cols-7 gap-1">
+                <!-- Calendar days with task indicators -->
+                <div class="p-3 text-center text-sm text-muted-foreground">1</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">2</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">3</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">4</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">5</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">6</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">7</div>
+                
+                <div class="p-3 text-center text-sm text-muted-foreground">8</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">9</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">10</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">11</div>
+                <div class="p-3 text-center text-sm relative">
+                    12
+                    <div class="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-green-500 rounded-full"></div>
+                </div>
+                <div class="p-3 text-center text-sm text-muted-foreground">13</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">14</div>
+                
+                <div class="p-3 text-center text-sm relative">
+                    15
+                    <div class="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-red-500 rounded-full"></div>
+                </div>
+                <div class="p-3 text-center text-sm text-muted-foreground">16</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">17</div>
+                <div class="p-3 text-center text-sm relative">
+                    18
+                    <div class="absolute bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-green-500 rounded-full"></div>
+                </div>
+                <div class="p-3 text-center text-sm text-muted-foreground">19</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">20</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">21</div>
+                
+                <div class="p-3 text-center text-sm text-muted-foreground">22</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">23</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">24</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">25</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">26</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">27</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">28</div>
+                
+                <div class="p-3 text-center text-sm text-muted-foreground">29</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">30</div>
+                <div class="p-3 text-center text-sm text-muted-foreground">31</div>
+            </div>
+        </div>
+    </section>
+    <!-- @END_COMPONENT: Dashboard -->
+
+    <!-- Floating Action Button -->
+    <button class="fixed bottom-6 right-6 w-14 h-14 gradient-bg rounded-full shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-110 flex items-center justify-center z-40">
+        <i class="fas fa-plus text-white text-xl"></i>
+    </button>
+
+    <script>
+        (function() {
+            // Theme toggle functionality
+            const themeToggle = document.getElementById('theme-toggle');
+            const html = document.documentElement;
+            const themeIcon = themeToggle.querySelector('i');
+            
+            // Check for saved theme preference or default to light mode
+            const savedTheme = localStorage.getItem('theme') || 'light';
+            html.classList.toggle('dark', savedTheme === 'dark');
+            updateThemeIcon(savedTheme === 'dark');
+            
+            themeToggle.addEventListener('click', function() {
+                const isDark = html.classList.toggle('dark');
+                localStorage.setItem('theme', isDark ? 'dark' : 'light');
+                updateThemeIcon(isDark);
+            });
+            
+            function updateThemeIcon(isDark) {
+                themeIcon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+            }
+            
+            // Task interaction animations
+            const taskItems = document.querySelectorAll('.task-item');
+            taskItems.forEach(item => {
+                item.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-2px)';
+                });
+                
+                item.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Checkbox toggle effects
+            const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.addEventListener('change', function() {
+                    const taskItem = this.closest('.task-item');
+                    const taskContent = taskItem.querySelector('div:nth-child(2)');
+                    
+                    if (this.checked) {
+                        taskContent.classList.add('opacity-60');
+                        taskContent.querySelector('h3').classList.add('line-through');
+                        
+                        // Add completion animation
+                        taskItem.style.transform = 'scale(0.98)';
+                        setTimeout(() => {
+                            taskItem.style.transform = 'scale(1)';
+                        }, 200);
+                    } else {
+                        taskContent.classList.remove('opacity-60');
+                        taskContent.querySelector('h3').classList.remove('line-through');
+                    }
+                });
+            });
+            
+            // Form submission handling
+            const form = document.querySelector('form');
+            form.addEventListener('submit', function(e) {
+                e.preventDefault();
+                // TODO: Implement task creation logic
+                console.log('Task creation logic would go here');
+                
+                // Show success animation
+                const button = this.querySelector('button[type="submit"]');
+                const originalText = button.innerHTML;
+                button.innerHTML = '<i class="fas fa-check mr-2"></i>Added!';
+                button.style.backgroundColor = '#10b981';
+                
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.style.backgroundColor = '';
+                    this.reset();
+                }, 2000);
+            });
+            
+            // Filter button interactions
+            const filterButtons = document.querySelectorAll('.bg-secondary, .bg-primary');
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    // Remove active state from all filter buttons
+                    filterButtons.forEach(btn => {
+                        btn.classList.remove('bg-primary', 'text-primary-foreground');
+                        btn.classList.add('bg-secondary', 'text-secondary-foreground');
+                    });
+                    
+                    // Add active state to clicked button
+                    this.classList.remove('bg-secondary', 'text-secondary-foreground');
+                    this.classList.add('bg-primary', 'text-primary-foreground');
+                    
+                    // TODO: Implement filtering logic
+                    console.log('Filter logic would go here');
+                });
+            });
+            
+            // Floating action button
+            const fab = document.querySelector('.fixed.bottom-6.right-6');
+            fab.addEventListener('click', function() {
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                const titleInput = document.querySelector('input[type="text"]');
+                setTimeout(() => {
+                    titleInput.focus();
+                }, 500);
+            });
+            
+            // Initialize animations
+            const animatedElements = document.querySelectorAll('.task-item, .bg-card');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animate-slide-in');
+                    }
+                });
+            }, { threshold: 0.1 });
+            
+            animatedElements.forEach(el => observer.observe(el));
+        })();
+    </script>
+</body>
+</html>

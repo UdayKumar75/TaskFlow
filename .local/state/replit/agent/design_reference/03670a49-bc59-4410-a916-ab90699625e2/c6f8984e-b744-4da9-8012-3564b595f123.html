@@ -1,0 +1,652 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creative Todo List</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          borderRadius: {
+            lg: "var(--radius)",
+            md: "calc(var(--radius) - 2px)",
+            sm: "calc(var(--radius) - 4px)",
+          },
+          colors: {
+            background: "var(--background)",
+            foreground: "var(--foreground)",
+            card: {
+              DEFAULT: "var(--card)",
+              foreground: "var(--card-foreground)",
+            },
+            popover: {
+              DEFAULT: "var(--popover)",
+              foreground: "var(--popover-foreground)",
+            },
+            primary: {
+              DEFAULT: "var(--primary)",
+              foreground: "var(--primary-foreground)",
+            },
+            secondary: {
+              DEFAULT: "var(--secondary)",
+              foreground: "var(--secondary-foreground)",
+            },
+            muted: {
+              DEFAULT: "var(--muted)",
+              foreground: "var(--muted-foreground)",
+            },
+            accent: {
+              DEFAULT: "var(--accent)",
+              foreground: "var(--accent-foreground)",
+            },
+            destructive: {
+              DEFAULT: "var(--destructive)",
+              foreground: "var(--destructive-foreground)",
+            },
+            border: "var(--border)",
+            input: "var(--input)",
+            ring: "var(--ring)",
+          },
+          fontFamily: {
+            sans: ["Inter", "var(--font-sans)"],
+          },
+          animation: {
+            'fade-in': 'fadeIn 0.3s ease-out',
+            'slide-up': 'slideUp 0.4s ease-out',
+            'bounce-in': 'bounceIn 0.5s ease-out',
+            'pulse-soft': 'pulseSoft 2s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeIn: {
+              '0%': { opacity: '0', transform: 'translateY(10px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            },
+            slideUp: {
+              '0%': { opacity: '0', transform: 'translateY(20px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' }
+            },
+            bounceIn: {
+              '0%': { opacity: '0', transform: 'scale(0.3)' },
+              '50%': { transform: 'scale(1.05)' },
+              '100%': { opacity: '1', transform: 'scale(1)' }
+            },
+            pulseSoft: {
+              '0%, 100%': { opacity: '1' },
+              '50%': { opacity: '0.7' }
+            }
+          }
+        }
+      }
+    };
+    </script>
+    <style>
+      :root {
+        --radius: 12px;
+        
+        /* Light Theme */
+        --background: hsl(210 40% 98%);
+        --foreground: hsl(222 84% 4.9%);
+        --card: hsl(0 0% 100%);
+        --card-foreground: hsl(222 84% 4.9%);
+        --popover: hsl(0 0% 100%);
+        --popover-foreground: hsl(222 84% 4.9%);
+        --primary: hsl(262 83% 58%);
+        --primary-foreground: hsl(210 40% 98%);
+        --secondary: hsl(210 40% 96%);
+        --secondary-foreground: hsl(222 84% 4.9%);
+        --muted: hsl(210 40% 96%);
+        --muted-foreground: hsl(215 16% 46%);
+        --accent: hsl(210 40% 96%);
+        --accent-foreground: hsl(222 84% 4.9%);
+        --destructive: hsl(0 84% 60%);
+        --destructive-foreground: hsl(210 40% 98%);
+        --border: hsl(214 32% 91%);
+        --input: hsl(214 32% 91%);
+        --ring: hsl(262 83% 58%);
+      }
+
+      .dark {
+        --background: hsl(222 84% 4.9%);
+        --foreground: hsl(210 40% 98%);
+        --card: hsl(222 84% 7%);
+        --card-foreground: hsl(210 40% 98%);
+        --popover: hsl(222 84% 7%);
+        --popover-foreground: hsl(210 40% 98%);
+        --primary: hsl(262 80% 65%);
+        --primary-foreground: hsl(222 84% 4.9%);
+        --secondary: hsl(217 32% 17%);
+        --secondary-foreground: hsl(210 40% 98%);
+        --muted: hsl(217 32% 17%);
+        --muted-foreground: hsl(215 20% 65%);
+        --accent: hsl(217 32% 17%);
+        --accent-foreground: hsl(210 40% 98%);
+        --destructive: hsl(0 75% 65%);
+        --destructive-foreground: hsl(210 40% 98%);
+        --border: hsl(217 32% 17%);
+        --input: hsl(217 32% 17%);
+        --ring: hsl(262 80% 65%);
+      }
+
+      * {
+        border-color: hsl(var(--border));
+      }
+
+      body {
+        background-color: hsl(var(--background));
+        color: hsl(var(--foreground));
+        font-family: 'Inter', sans-serif;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .task-item {
+        transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      }
+
+      .task-item:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      }
+
+      .dark .task-item:hover {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+      }
+
+      .checkbox {
+        transition: all 0.2s ease;
+      }
+
+      .checkbox:checked {
+        background-color: hsl(var(--primary));
+        border-color: hsl(var(--primary));
+      }
+
+      .completed-task {
+        opacity: 0.6;
+        text-decoration: line-through;
+      }
+
+      .priority-high {
+        border-left: 4px solid hsl(0 84% 60%);
+      }
+
+      .priority-medium {
+        border-left: 4px solid hsl(38 92% 50%);
+      }
+
+      .priority-low {
+        border-left: 4px solid hsl(142 71% 45%);
+      }
+
+      .floating-gradient {
+        background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+        animation: pulseSoft 3s ease-in-out infinite;
+      }
+
+      .dark .floating-gradient {
+        background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(217 32% 25%) 100%);
+      }
+    </style>
+</head>
+
+<!-- @COMPONENT: TodoApp -->
+<body class="min-h-screen transition-all duration-300 ease-in-out">
+  <!-- Background Pattern -->
+  <div class="fixed inset-0 opacity-40">
+    <div class="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-accent/5"></div>
+    <div class="absolute top-20 right-20 w-72 h-72 floating-gradient rounded-full blur-3xl opacity-20"></div>
+    <div class="absolute bottom-20 left-20 w-96 h-96 bg-gradient-to-br from-secondary/30 to-muted/30 rounded-full blur-3xl opacity-30"></div>
+  </div>
+
+  <!-- @COMPONENT: Header -->
+  <header class="relative z-10 pt-8 pb-4">
+    <div class="container mx-auto px-4 max-w-4xl">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center space-x-3">
+          <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center">
+            <i class="fas fa-check text-primary-foreground"></i>
+          </div>
+          <div>
+            <h1 class="text-2xl lg:text-3xl font-bold text-foreground">Creative Tasks</h1>
+            <p class="text-muted-foreground text-sm">Organize your day beautifully</p>
+          </div>
+        </div>
+
+        <!-- @COMPONENT: ThemeToggle -->
+        <button 
+          id="theme-toggle" 
+          class="group relative w-14 h-8 bg-muted hover:bg-accent rounded-full transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 focus:ring-offset-background"
+          data-event="click:toggleTheme"
+          data-implementation="Toggle between light and dark themes, persist to localStorage"
+        >
+          <div class="absolute inset-1 w-6 h-6 bg-background rounded-full transition-transform duration-300 shadow-sm group-hover:scale-110" id="toggle-ball">
+            <i class="fas fa-sun absolute inset-0 flex items-center justify-center text-xs text-primary opacity-100 dark:opacity-0 transition-opacity duration-300"></i>
+            <i class="fas fa-moon absolute inset-0 flex items-center justify-center text-xs text-primary opacity-0 dark:opacity-100 transition-opacity duration-300"></i>
+          </div>
+        </button>
+        <!-- @END_COMPONENT: ThemeToggle -->
+      </div>
+    </div>
+  </header>
+  <!-- @END_COMPONENT: Header -->
+
+  <main class="relative z-10 pb-8">
+    <div class="container mx-auto px-4 max-w-4xl">
+      
+      <!-- @COMPONENT: TaskStats -->
+      <section class="mb-8 animate-fade-in">
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="text-2xl font-bold text-foreground" data-bind="stats.total">8</div>
+            <div class="text-sm text-muted-foreground">Total Tasks</div>
+          </div>
+          <div class="bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="text-2xl font-bold text-primary" data-bind="stats.completed">3</div>
+            <div class="text-sm text-muted-foreground">Completed</div>
+          </div>
+          <div class="bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="text-2xl font-bold text-destructive" data-bind="stats.pending">5</div>
+            <div class="text-sm text-muted-foreground">Pending</div>
+          </div>
+          <div class="bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-md transition-shadow duration-200">
+            <div class="text-2xl font-bold text-accent-foreground" data-bind="stats.progress">38%</div>
+            <div class="text-sm text-muted-foreground">Progress</div>
+          </div>
+        </div>
+      </section>
+      <!-- @END_COMPONENT: TaskStats -->
+
+      <!-- @COMPONENT: TaskInput -->
+      <section class="mb-8 animate-slide-up">
+        <div class="bg-card rounded-xl p-6 border border-border shadow-lg backdrop-blur-sm">
+          <form class="space-y-4" data-event="submit:handleAddTask" data-implementation="Prevent default, validate input, add task to state">
+            <div class="flex flex-col sm:flex-row gap-3">
+              <div class="flex-1">
+                <input 
+                  type="text" 
+                  placeholder="What needs to be done today?" 
+                  class="w-full px-4 py-3 bg-input border border-border rounded-lg text-foreground placeholder-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:border-transparent transition-all duration-200"
+                  data-mock="true"
+                  data-bind="taskInput.title"
+                />
+              </div>
+              <div class="flex gap-2">
+                <select class="px-3 py-3 bg-input border border-border rounded-lg text-foreground focus:outline-none focus:ring-2 focus:ring-ring transition-all duration-200" data-bind="taskInput.priority">
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </select>
+                <button type="submit" class="px-6 py-3 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 shadow-lg">
+                  <i class="fas fa-plus mr-2"></i>Add Task
+                </button>
+              </div>
+            </div>
+          </form>
+        </div>
+      </section>
+      <!-- @END_COMPONENT: TaskInput -->
+
+      <!-- @COMPONENT: TaskFilters -->
+      <section class="mb-6 animate-fade-in">
+        <div class="flex flex-wrap gap-3 items-center justify-between">
+          <div class="flex gap-2">
+            <button class="px-4 py-2 rounded-lg bg-primary text-primary-foreground font-medium transition-all duration-200 hover:scale-105" data-event="click:setFilter" data-filter="all">
+              All Tasks
+            </button>
+            <button class="px-4 py-2 rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-all duration-200 hover:scale-105" data-event="click:setFilter" data-filter="active">
+              Active
+            </button>
+            <button class="px-4 py-2 rounded-lg bg-muted hover:bg-accent text-muted-foreground hover:text-accent-foreground transition-all duration-200 hover:scale-105" data-event="click:setFilter" data-filter="completed">
+              Completed
+            </button>
+          </div>
+          <div class="flex items-center space-x-3 text-sm text-muted-foreground">
+            <span data-bind="currentFilter">Showing all tasks</span>
+            <button class="text-destructive hover:text-destructive/80 transition-colors duration-200" data-event="click:clearCompleted" data-implementation="Remove all completed tasks from state">
+              <i class="fas fa-trash-alt mr-1"></i>Clear Completed
+            </button>
+          </div>
+        </div>
+      </section>
+      <!-- @END_COMPONENT: TaskFilters -->
+
+      <!-- @COMPONENT: TaskList -->
+      <section class="animate-slide-up">
+        <div class="space-y-4">
+
+          <!-- @MAP: tasks.map(task => ( -->
+          <!-- High Priority Task -->
+          <div class="task-item priority-high bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-lg" data-bind="task.id">
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0 pt-1">
+                <input 
+                  type="checkbox" 
+                  class="checkbox w-5 h-5 rounded-md border-2 border-border focus:ring-2 focus:ring-ring appearance-none checked:bg-primary checked:border-primary cursor-pointer"
+                  data-bind="task.completed"
+                  data-event="change:toggleTask"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-medium text-foreground mb-1" data-bind="task.title" data-mock="true">Launch new marketing campaign</h3>
+                    <p class="text-muted-foreground text-sm mb-2" data-bind="task.description" data-mock="true">Prepare social media content and schedule posts for the product launch</p>
+                    <div class="flex items-center space-x-4 text-xs">
+                      <span class="px-2 py-1 bg-destructive/10 text-destructive rounded-full font-medium" data-bind="task.priority" data-mock="true">High Priority</span>
+                      <span class="text-muted-foreground" data-bind="task.createdAt" data-mock="true">2 hours ago</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-2 ml-4">
+                    <button class="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200" data-event="click:editTask" data-implementation="Enable inline editing mode">
+                      <i class="fas fa-edit text-sm"></i>
+                    </button>
+                    <button class="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200" data-event="click:deleteTask" data-implementation="Remove task after confirmation">
+                      <i class="fas fa-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Medium Priority Task -->
+          <div class="task-item priority-medium bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-lg" data-bind="task.id">
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0 pt-1">
+                <input 
+                  type="checkbox" 
+                  class="checkbox w-5 h-5 rounded-md border-2 border-border focus:ring-2 focus:ring-ring appearance-none checked:bg-primary checked:border-primary cursor-pointer"
+                  data-bind="task.completed"
+                  data-event="change:toggleTask"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-medium text-foreground mb-1" data-bind="task.title" data-mock="true">Update project documentation</h3>
+                    <p class="text-muted-foreground text-sm mb-2" data-bind="task.description" data-mock="true">Review and update README files and API documentation</p>
+                    <div class="flex items-center space-x-4 text-xs">
+                      <span class="px-2 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded-full font-medium" data-bind="task.priority" data-mock="true">Medium Priority</span>
+                      <span class="text-muted-foreground" data-bind="task.createdAt" data-mock="true">4 hours ago</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-2 ml-4">
+                    <button class="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200" data-event="click:editTask">
+                      <i class="fas fa-edit text-sm"></i>
+                    </button>
+                    <button class="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200" data-event="click:deleteTask">
+                      <i class="fas fa-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Completed Task -->
+          <div class="task-item priority-low bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-lg completed-task" data-bind="task.id">
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0 pt-1">
+                <input 
+                  type="checkbox" 
+                  checked 
+                  class="checkbox w-5 h-5 rounded-md border-2 border-primary bg-primary focus:ring-2 focus:ring-ring appearance-none cursor-pointer"
+                  data-bind="task.completed"
+                  data-event="change:toggleTask"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-medium text-foreground mb-1" data-bind="task.title" data-mock="true">Review code submissions</h3>
+                    <p class="text-muted-foreground text-sm mb-2" data-bind="task.description" data-mock="true">Go through pull requests and provide feedback</p>
+                    <div class="flex items-center space-x-4 text-xs">
+                      <span class="px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full font-medium" data-bind="task.priority" data-mock="true">Low Priority</span>
+                      <span class="text-muted-foreground" data-bind="task.completedAt" data-mock="true">Completed 1 hour ago</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-2 ml-4">
+                    <button class="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200" data-event="click:editTask">
+                      <i class="fas fa-edit text-sm"></i>
+                    </button>
+                    <button class="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200" data-event="click:deleteTask">
+                      <i class="fas fa-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Another Active Task -->
+          <div class="task-item priority-medium bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-lg" data-bind="task.id">
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0 pt-1">
+                <input 
+                  type="checkbox" 
+                  class="checkbox w-5 h-5 rounded-md border-2 border-border focus:ring-2 focus:ring-ring appearance-none checked:bg-primary checked:border-primary cursor-pointer"
+                  data-bind="task.completed"
+                  data-event="change:toggleTask"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-medium text-foreground mb-1" data-bind="task.title" data-mock="true">Schedule team meeting</h3>
+                    <p class="text-muted-foreground text-sm mb-2" data-bind="task.description" data-mock="true">Coordinate with everyone for the weekly standup meeting</p>
+                    <div class="flex items-center space-x-4 text-xs">
+                      <span class="px-2 py-1 bg-yellow-500/10 text-yellow-600 dark:text-yellow-400 rounded-full font-medium" data-bind="task.priority" data-mock="true">Medium Priority</span>
+                      <span class="text-muted-foreground" data-bind="task.createdAt" data-mock="true">1 day ago</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-2 ml-4">
+                    <button class="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200" data-event="click:editTask">
+                      <i class="fas fa-edit text-sm"></i>
+                    </button>
+                    <button class="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200" data-event="click:deleteTask">
+                      <i class="fas fa-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Low Priority Task -->
+          <div class="task-item priority-low bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-lg" data-bind="task.id">
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0 pt-1">
+                <input 
+                  type="checkbox" 
+                  class="checkbox w-5 h-5 rounded-md border-2 border-border focus:ring-2 focus:ring-ring appearance-none checked:bg-primary checked:border-primary cursor-pointer"
+                  data-bind="task.completed"
+                  data-event="change:toggleTask"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-medium text-foreground mb-1" data-bind="task.title" data-mock="true">Organize desk workspace</h3>
+                    <p class="text-muted-foreground text-sm mb-2" data-bind="task.description" data-mock="true">Clean up cables and organize office supplies for better productivity</p>
+                    <div class="flex items-center space-x-4 text-xs">
+                      <span class="px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full font-medium" data-bind="task.priority" data-mock="true">Low Priority</span>
+                      <span class="text-muted-foreground" data-bind="task.createdAt" data-mock="true">2 days ago</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-2 ml-4">
+                    <button class="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200" data-event="click:editTask">
+                      <i class="fas fa-edit text-sm"></i>
+                    </button>
+                    <button class="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200" data-event="click:deleteTask">
+                      <i class="fas fa-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Another Completed Task -->
+          <div class="task-item priority-low bg-card rounded-xl p-4 border border-border shadow-sm hover:shadow-lg completed-task" data-bind="task.id">
+            <div class="flex items-start space-x-4">
+              <div class="flex-shrink-0 pt-1">
+                <input 
+                  type="checkbox" 
+                  checked 
+                  class="checkbox w-5 h-5 rounded-md border-2 border-primary bg-primary focus:ring-2 focus:ring-ring appearance-none cursor-pointer"
+                  data-bind="task.completed"
+                  data-event="change:toggleTask"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <div class="flex items-start justify-between">
+                  <div class="flex-1">
+                    <h3 class="text-lg font-medium text-foreground mb-1" data-bind="task.title" data-mock="true">Buy groceries</h3>
+                    <p class="text-muted-foreground text-sm mb-2" data-bind="task.description" data-mock="true">Get fresh vegetables, milk, and bread from the local market</p>
+                    <div class="flex items-center space-x-4 text-xs">
+                      <span class="px-2 py-1 bg-green-500/10 text-green-600 dark:text-green-400 rounded-full font-medium" data-bind="task.priority" data-mock="true">Low Priority</span>
+                      <span class="text-muted-foreground" data-bind="task.completedAt" data-mock="true">Completed 3 hours ago</span>
+                    </div>
+                  </div>
+                  <div class="flex items-center space-x-2 ml-4">
+                    <button class="p-2 text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg transition-all duration-200" data-event="click:editTask">
+                      <i class="fas fa-edit text-sm"></i>
+                    </button>
+                    <button class="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200" data-event="click:deleteTask">
+                      <i class="fas fa-trash text-sm"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- @END_MAP )) -->
+
+          <!-- Empty State (hidden when tasks exist) -->
+          <div class="text-center py-12 opacity-0 pointer-events-none" id="empty-state" data-implementation="Show when no tasks match current filter">
+            <div class="w-24 h-24 mx-auto mb-4 bg-muted rounded-full flex items-center justify-center">
+              <i class="fas fa-tasks text-3xl text-muted-foreground"></i>
+            </div>
+            <h3 class="text-xl font-semibold text-foreground mb-2">No tasks yet</h3>
+            <p class="text-muted-foreground max-w-sm mx-auto">Start being productive by adding your first task above. You can organize them by priority and track your progress!</p>
+          </div>
+
+        </div>
+      </section>
+      <!-- @END_COMPONENT: TaskList -->
+
+      <!-- @COMPONENT: ProgressBar -->
+      <section class="mt-8 animate-fade-in">
+        <div class="bg-card rounded-xl p-6 border border-border shadow-sm">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-lg font-semibold text-foreground">Daily Progress</h3>
+            <span class="text-primary font-medium" data-bind="progressPercentage" data-mock="true">38%</span>
+          </div>
+          <div class="w-full bg-muted rounded-full h-3 overflow-hidden">
+            <div class="h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out animate-pulse-soft" style="width: 38%" data-bind="progressWidth" data-implementation="Calculate from completed/total tasks ratio"></div>
+          </div>
+          <p class="text-sm text-muted-foreground mt-2" data-mock="true">3 of 8 tasks completed today</p>
+        </div>
+      </section>
+      <!-- @END_COMPONENT: ProgressBar -->
+
+    </div>
+  </main>
+
+  <!-- @COMPONENT: FloatingActionButton -->
+  <div class="fixed bottom-6 right-6 z-20">
+    <button class="w-14 h-14 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-110 active:scale-95 group" data-event="click:focusTaskInput" data-implementation="Scroll to and focus the task input field">
+      <i class="fas fa-plus text-lg group-hover:rotate-90 transition-transform duration-300"></i>
+    </button>
+  </div>
+  <!-- @END_COMPONENT: FloatingActionButton -->
+
+  <!-- @STATE: darkMode:boolean = false -->
+  <!-- @STATE: tasks:array = [] -->
+  <!-- @STATE: currentFilter:string = 'all' -->
+  <!-- @STATE: taskInput:object = {title: '', description: '', priority: 'low'} -->
+
+  <script>
+    (function() {
+      // TODO: Implement state management, local storage persistence, and task CRUD operations
+      
+      // Theme toggle functionality
+      const themeToggle = document.getElementById('theme-toggle');
+      const toggleBall = document.getElementById('toggle-ball');
+      
+      // Check for saved theme preference or default to light mode
+      const currentTheme = localStorage.getItem('theme') || 'light';
+      if (currentTheme === 'dark') {
+        document.documentElement.classList.add('dark');
+        toggleBall.style.transform = 'translateX(24px)';
+      }
+
+      themeToggle.addEventListener('click', function() {
+        document.documentElement.classList.toggle('dark');
+        const isDark = document.documentElement.classList.contains('dark');
+        
+        // Animate toggle
+        toggleBall.style.transform = isDark ? 'translateX(24px)' : 'translateX(0)';
+        
+        // Save preference
+        localStorage.setItem('theme', isDark ? 'dark' : 'light');
+      });
+
+      // Smooth animations for task interactions
+      document.addEventListener('change', function(e) {
+        if (e.target.classList.contains('checkbox')) {
+          const taskItem = e.target.closest('.task-item');
+          const isChecked = e.target.checked;
+          
+          if (isChecked) {
+            taskItem.classList.add('completed-task');
+            // TODO: Update task completion status in state
+          } else {
+            taskItem.classList.remove('completed-task');
+            // TODO: Update task completion status in state
+          }
+        }
+      });
+
+      // Add subtle entrance animations
+      const observerOptions = {
+        threshold: 0.1,
+        rootMargin: '0px 0px -50px 0px'
+      };
+
+      const observer = new IntersectionObserver(function(entries) {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) {
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'translateY(0)';
+          }
+        });
+      }, observerOptions);
+
+      // Observe all task items for animation
+      document.querySelectorAll('.task-item').forEach(item => {
+        item.style.opacity = '0';
+        item.style.transform = 'translateY(20px)';
+        item.style.transition = 'all 0.6s cubic-bezier(0.4, 0, 0.2, 1)';
+        observer.observe(item);
+      });
+
+      // TODO: Implement task management logic:
+      // - Add task function with form validation
+      // - Delete task with confirmation
+      // - Edit task with inline editing
+      // - Filter tasks by status
+      // - Calculate and update progress
+      // - Persist to localStorage
+      // - Handle responsive interactions
+    })();
+  </script>
+
+</body>
+<!-- @END_COMPONENT: TodoApp -->
+</html>
